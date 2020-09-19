@@ -29,12 +29,16 @@ alpha = 0; # C_max weight
 beta = 1 # flowtime weight
 gamma = 0.01 # movement weight
 delta = 0.01 # queueing cost
-time_limit = 180  # Time limit for cplex run (seconds)
+time_limit = 900  # Time limit for cplex run (seconds)
 
 
 
 # obtain command line paramteres
 #  Lx, Ly, # reps, # loads, terminal1_X, terminal1_y, ..
+
+if len(sys.argv) < 7:
+    print("Usage: python %s Lx Ly reps_range target_load_num escorts_range IO_location_list" % sys.argv[0])
+    exit(1)
 
 Lx = int(sys.argv[1])
 Ly = int(sys.argv[2])
@@ -51,12 +55,13 @@ for i in range(len(ez)//2):
 
 Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
+f = open('res_full.csv','a')
+f.write("date, Lx x Ly, #IOs, # Escorts, #Loads, IOs, Escorts, Target Loads, alpha, beta, gamma, makespan, flowtime, #load movements, obj, LB, CPU time, seed\n" )
+f.close()
+
 for escort_num in escorts_range:
     for rep in reps_range:
-
         random.seed(rep)
-        escort_num = int((i/20)*Lx*Ly+1)
-
         f = open("pbs_full.dat","w")
 
         f.write('file_export = "%s";\n'%file_export)
@@ -67,24 +72,23 @@ for escort_num in escorts_range:
         f.write('Lx=%d;\n'%Lx)
         f.write('Ly=%d;\n'%Ly)
         f.write('T=%d;\n'%((Lx+Ly)*3))  # just for now
-
-        R,E = GeneretaeRandomInstance(seed, Locations, escort_num, load_num)
-
+        R,E = GeneretaeRandomInstance(rep, Locations, escort_num, load_num)
         f.write('E=%s;\n'%tuple_opl(E))
         f.write('R=%s;\n'%tuple_opl(R))
         f.write('O=%s;\n'%tuple_opl(O))
-
         f.close()
-
 
         try:
             subprocess.run(["oplrun", "pbs2.mod", "pbs_full.dat"], check=True)
         except:
             print("Could not solve the model")
             f = open('res_full.csv','a')
-            f.write("%s, %dx%d, %d,%d,%d, %s, %s, %s, %1.3f, %1.3f, %1.3f, No solution %d\n" %(time.ctime(),Lx,Ly, len(O), len(E), len(R), tuple_opl(O), tuple_opl(E), tuple_opl(R) , alpha,beta,gamma,rep))
+            f.write("%s, %dx%d, %d,%d,%d, %s, %s, %s, %1.3f, %1.3f, %1.3f, No solution, -,-,-,-,-, %d\n" %(time.ctime(),Lx,Ly, len(O), len(E), len(R), tuple_opl(O), tuple_opl(E), tuple_opl(R) , alpha,beta,gamma,rep))
             f.close()
         else:
+            f = open('res_full.csv','a')
+            f.write(",%d\n"% rep)
+            f.close()
             # Create script file
             if file_export != "":
 

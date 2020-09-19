@@ -119,8 +119,8 @@ def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
 if __name__ == '__main__':
 
 
-    if len(sys.argv) < 3:
-        print("usage: python", sys.argv[0],"<setting_file of the base problen> <range actual esscorts>")
+    if len(sys.argv) < 4:
+        print("usage: python", sys.argv[0],"<setting_file of the base problen> <range actual esscorts>  <range seed>")
 
         exit(1)
 
@@ -136,17 +136,17 @@ if __name__ == '__main__':
         print('Panic: cannot solve using k=%d instances in the range %d' % (k,sys.argv[2]))
         exit(1)
 
+    rep_range = str2range(sys.argv[3])
+
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
     S = pickle.load( open( "LM_"+sys.argv[1]+".p", "rb" ) )
     f = open("res_dph_lm.csv", "a")
-    f.write("Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, cpu time\n")
+    f.write("Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time\n")
     f.close()
 
-    #for K in [16]:
     for K in k_range:
-        for i in range(reps):
-        #for i in [1]:
+        for i in rep_range:
             I, E = GeneretaeRandomInstance(i, Locations, K)
             I = I[0]  #  Here we assume a single retrival only now.
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
             moves = DOHueristicLM(S, I,E, Lx, Ly, Terminals, k, False)
 
             f = open("res_dph_lm.csv", "a")
-            f.write("%s, %s, LM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %1.3f\n" %(time.ctime(),name,Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  str(E).replace(",",""), len(moves), time.time()-startTime))
+            f.write("%s, %s, LM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %d, %1.3f\n" %(time.ctime(),name,Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  str(E).replace(",",""), len(moves), sum([ len(a) for a in moves]) ,time.time()-startTime))
             f.close()
 
             # Uncomment to create animation scripts

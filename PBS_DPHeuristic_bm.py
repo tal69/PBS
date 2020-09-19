@@ -140,7 +140,7 @@ if __name__ == '__main__':
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
     S = pickle.load( open( "BM_"+sys.argv[1]+".p", "rb" ) )
     f = open("res_dph_bm.csv", "a")
-    f.write("Date, Name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, cpu time\n")
+    f.write("Date, Name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time\n")
     f.close()
 
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
             moves = DOHueristicBM(S, I,E, Lx, Ly, Terminals, k, False)
 
             f = open("res_dph_bm.csv", "a")
-            f.write("%s, %s, BM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %1.3f\n" %(time.ctime(),name, Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  str(E).replace(",",""), len(moves), time.time()-startTime))
+            f.write("%s, %s, BM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %d, %1.3f\n" %(time.ctime(),name, Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  str(E).replace(",",""), len(moves), sum([ len(a) for a in moves]),time.time()-startTime))
             f.close()
 
 

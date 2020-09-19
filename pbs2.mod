@@ -215,7 +215,7 @@ execute {
 	  f.close();
 	}  
 	var f = new IloOplOutputFile("res_full.csv", true);
-	f.writeln(after,",",Lx, "x", Ly,",",Opl.card(O),",",Opl.card(E),",",Opl.card(R), ",", O, ",", E, ",", R, ",", 
+	f.write(after,",",Lx, "x", Ly,",",Opl.card(O),",",Opl.card(E),",",Opl.card(R), ",", O, ",", E, ",", R, ",", 
 	alpha, ",", beta, ",", gamma, ",", z, ",", FlowTime, ",", NumberOfMovements,",", 
 	cplex.getObjValue(), ",",cplex.getBestObjValue(),",",CpuTime );
 	
