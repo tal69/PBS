@@ -132,7 +132,10 @@ if __name__ == '__main__':
     name =sys.argv[1]
 
     exec("from "+name+" import *")
-    max_K = int(sys.argv[2])
+    k_range = str2range(sys.argv[2])
+    if k-1 in k_range:
+        print('Panic: cannot solve using k=%d instances in the range %d' % (k,sys.argv[2]))
+        exit(1)
 
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
     S = pickle.load( open( "BM_"+sys.argv[1]+".p", "rb" ) )
@@ -142,7 +145,7 @@ if __name__ == '__main__':
 
 
 
-    for K in range(k,max_K+1):
+    for K in k_range:
     #for K in [16]:
         for i in range(reps):
         #for i in [16]:
@@ -161,5 +164,3 @@ if __name__ == '__main__':
             f = open(scripts_path+"/DPH_BM_%d_%d_%d_%d_%d.p" % (Lx, Ly,len(E), k,i),"wb")
             pickle.dump( (Lx, Ly, Terminals, E,[I],moves),f)
             f.close()
-
-
