@@ -1,3 +1,6 @@
 __pycache__/*
 phase1LM/*
 phase1BM
+*.csv
+*.p
+*.xlsx
