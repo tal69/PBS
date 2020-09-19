@@ -146,14 +146,8 @@ if __name__ == '__main__':
     #for K in [16]:
         for i in range(reps):
         #for i in [16]:
-            random.seed(i)
-            ez = random.sample(Locations,1+K)
-
-            I = ez[0]
-            E = ez[1:]
-            E.sort()
-
-            #p = listTuple2Int([I]+E, Lx, Ly)
+            I, E = GeneretaeRandomInstance(i, Locations, K)
+            I = I[0]  #  Here we assume a single retrival only now.
 
             startTime = time.time()
             moves = DOHueristicBM(S, I,E, Lx, Ly, Terminals, k, False)

@@ -16,20 +16,8 @@ import itertools
 import subprocess
 import pickle
 import time
+from PBSCom import *
 
-rnd_seed = 0
-
-"""
-   [(1,1),(2,3)] -> {<1 1>  <2 3>}
-"""
-def tuple_opl(L):
-
-    s = "{"
-
-    for t in L:
-        s +=  "<"+str(t[0])+" "+str(t[1])+"> "
-
-    return s +"}"
 
 
 
@@ -42,7 +30,6 @@ beta = 1 # flowtime weight
 gamma = 0.01 # movement weight
 delta = 0.01 # queueing cost
 time_limit = 180  # Time limit for cplex run (seconds)
-#incentive = 0.05  # incentive for reaching lonely loads, relevant only for the rolling horizon
 
 
 
@@ -52,7 +39,6 @@ time_limit = 180  # Time limit for cplex run (seconds)
 Lx = int(sys.argv[1])
 Ly = int(sys.argv[2])
 
-#escort_num = int(sys.argv[3])
 reps = int(sys.argv[3])
 load_num = int(sys.argv[4])
 
@@ -62,6 +48,7 @@ O = []
 for i in range(len(ez)//2):
     O.append((ez[i*2], ez[i*2+1]))
 
+Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
 for i in range(10):
     for rep in range(reps):
@@ -76,18 +63,11 @@ for i in range(10):
         f.write('alpha=%f;\n'%alpha)
         f.write('beta=%f;\n'%beta)
         f.write('gamma=%f;\n'%gamma)
-
         f.write('Lx=%d;\n'%Lx)
         f.write('Ly=%d;\n'%Ly)
-
         f.write('T=%d;\n'%((Lx+Ly)*3))  # just for now
 
-        Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
-        ez = random.sample(Locations,escort_num+load_num)
-
-        R = ez[:load_num]
-        E = ez[load_num:]
-
+        R,E = GeneretaeRandomInstance(seed, Locations, escort_num, load_num)
 
         f.write('E=%s;\n'%tuple_opl(E))
         f.write('R=%s;\n'%tuple_opl(R))

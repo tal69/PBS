@@ -10,7 +10,8 @@
 #-------------------------------------------------------------------------------
 
 import math
-
+import itertools
+import random
 
 
 # The general function in this file are used also by other programs
@@ -192,3 +193,27 @@ def checkComp(s1,s2, Lx, Ly):
         if t1[i][0] != t2[i][0] and t1[i][1] != t2[i][1]:
             return False
     return True
+
+
+"""
+   [(1,1),(2,3)] -> {<1 1>  <2 3>}
+"""
+def tuple_opl(L):
+
+    s = "{"
+
+    for t in L:
+        s +=  "<"+str(t[0])+" "+str(t[1])+"> "
+
+    return s +"}"
+
+
+# Sample locations of retrived load(s) and escorts for a given location list
+# use
+#     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
+# to create the list of locations first
+
+def GeneretaeRandomInstance(seed, Locations, num_escorts, num_load=1):
+    random.seed(seed)
+    ez = random.sample(Locations,num_escorts+num_load)
+    return  sorted(ez[:num_load]),  sorted(ez[num_load:])

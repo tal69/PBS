@@ -144,12 +144,8 @@ if __name__ == '__main__':
     for K in range(k,min(max_K+1, Lx*Ly-k+1)):
         for i in range(reps):
         #for i in [1]:
-            random.seed(i)
-            ez = random.sample(Locations,1+K)
-            I = ez[0]
-            E = ez[1:]
-            E.sort()
-            #p = listTuple2Int([I]+E, Lx, Ly)
+            I, E = GeneretaeRandomInstance(i, Locations, K)
+            I = I[0]  #  Here we assume a single retrival only now.
 
             startTime = time.time()
             moves = DOHueristicLM(S, I,E, Lx, Ly, Terminals, k, False)
