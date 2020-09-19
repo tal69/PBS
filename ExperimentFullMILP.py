@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-# Name:        ExperimentFull
+# Name:        ExperimentFullMILP
 # Purpose:     Run the experiment with the full model (no replenishments)
 #
 # Author:      tal raviv,  talraviv@tau.ac.il
 #
-# Created:     23/08/2020
-# Copyright:   (c) tal raviv 2020
+# Created:     23/08/2020, updated 18/9/2020
+# Copyright:   (c) Tal Raviv 2020
 # Licence:     Free but please let me know that you are using it
 #-------------------------------------------------------------------------------
 
@@ -39,19 +39,20 @@ time_limit = 180  # Time limit for cplex run (seconds)
 Lx = int(sys.argv[1])
 Ly = int(sys.argv[2])
 
-reps = int(sys.argv[3])
+reps_range = str2range(sys.argv[3])
 load_num = int(sys.argv[4])
+escorts_range = str2range(sys.argv[5])
 
 
-ez = [int(a) for a in sys.argv[5:]]
+ez = [int(a) for a in sys.argv[6:]]
 O = []
 for i in range(len(ez)//2):
     O.append((ez[i*2], ez[i*2+1]))
 
 Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
-for i in range(10):
-    for rep in range(reps):
+for escort_num in escorts_range:
+    for rep in reps_range:
 
         random.seed(rep)
         escort_num = int((i/20)*Lx*Ly+1)

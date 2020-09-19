@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
 
     if len(sys.argv) < 3:
-        print("usage: python", sys.argv[0],"<setting_file of the base problen> <max number of actual esscorts>")
+        print("usage: python", sys.argv[0],"<setting_file of the base problen> <range actual esscorts>")
 
         exit(1)
 
@@ -131,7 +131,10 @@ if __name__ == '__main__':
     name = sys.argv[1]
 
     exec("from "+name+" import *")
-    max_K = int(sys.argv[2])
+    k_range = str2range(sys.argv[2])
+    if k-1 in k_range:
+        print('Panic: cannot solve using k=%d instances in the range %d' % (k,sys.argv[2]))
+        exit(1)
 
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
     f.close()
 
     #for K in [16]:
-    for K in range(k,min(max_K+1, Lx*Ly-k+1)):
+    for K in k_range:
         for i in range(reps):
         #for i in [1]:
             I, E = GeneretaeRandomInstance(i, Locations, K)

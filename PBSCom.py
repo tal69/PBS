@@ -217,3 +217,14 @@ def GeneretaeRandomInstance(seed, Locations, num_escorts, num_load=1):
     random.seed(seed)
     ez = random.sample(Locations,num_escorts+num_load)
     return  sorted(ez[:num_load]),  sorted(ez[num_load:])
+
+
+def str2range(s):
+    a = s.split('-')
+    if len(a) == 1:
+        return range(int(a[0]), int(a[0])+1)
+    elif len(a) == 2:
+        return range(int(a[0]), int(a[1])+1)
+    elif len(a) == 3:
+        return range(int(a[0]), int(a[1])+1, int(a[2]))
+
