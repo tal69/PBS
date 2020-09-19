@@ -41,8 +41,9 @@ alpha = 0; # C_max weight
 beta = 1 # flowtime weight
 gamma = 0.01 # movement weight
 delta = 0.01 # queueing cost
-incentive = 0.05  # incentive for reaching lonely loads
-time_limit = 180
+time_limit = 180  # Time limit for cplex run (seconds)
+#incentive = 0.05  # incentive for reaching lonely loads, relevant only for the rolling horizon
+
 
 
 # obtain command line paramteres
