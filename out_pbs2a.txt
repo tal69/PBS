@@ -1,0 +1,5 @@
+z=0
+FlowTime=2
+NumberOfMovements=2
+obj=2.02
+lb=2.02

@@ -19,6 +19,7 @@ from PBSCom import *
 import itertools
 import random
 import time
+import copy
 
 scripts_path = "phase1BM"
 reps = 20  # number of replications
@@ -45,6 +46,8 @@ def direction(a,b):
 def DOHueristicBM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
     t = 0
 
+    E_local = copy.copy(E)
+
     moves = []
 
     while True:
@@ -52,14 +55,14 @@ def DOHueristicBM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
 
         if chat:
             Ix, Iy = I
-            print("Period ",t," - ",(Ix,Iy),E)
+            print("Period ",t," - ",(Ix,Iy),E_local)
 
             for y in range(Ly-1,-1,-1):
                 for x in range(Lx):
 
                     if (Ix,Iy) == (x,y):
                         print("$",end="")
-                    elif  (x,y) in E:
+                    elif  (x,y) in E_local:
                         print(".",end="")
                     elif (x,y) in Terminals:
                         print("T",end="")
@@ -69,14 +72,14 @@ def DOHueristicBM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
             print("")
 
 
-        ez = ShortestPath(I,E,Terminals)
+        ez = ShortestPath(I,E_local,Terminals)
         if ez:
             print("*****  Finish with shortest path shortcut ******")
             return moves+[ [a] for a in ez]
 
         min_val = 9999999
 
-        for Et in itertools.combinations(E, k):
+        for Et in itertools.combinations(E_local, k):
             EE = sorted(list(Et))
             p = listTuple2Int([I]+EE, Lx, Ly)
             if p == 186770:
@@ -106,14 +109,14 @@ def DOHueristicBM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
             d = direction(best_EE[i], new_EE[i])
             while curr_loc != new_EE[i]:
                 next_loc = (curr_loc[0]+d[0], curr_loc[1]+d[1])
-                if not next_loc in E:
+                if not next_loc in E_local:
                     curr_move.append((next_loc, curr_loc))   # Recall that the load movements are opposite to the escort movement
-                    E.remove(curr_loc)
-                    E.append(next_loc)
+                    E_local.remove(curr_loc)
+                    E_local.append(next_loc)
                 curr_loc = next_loc
 
         moves.append(curr_move)
-        E.sort()
+        E_local.sort()
     return moves
 
 
@@ -121,11 +124,10 @@ def DOHueristicBM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
 if __name__ == '__main__':
 
 
-    if len(sys.argv) < 3:
-        print("usage: python", sys.argv[0],"<setting_file of the base problen> <max number of esscorts>")
 
+    if len(sys.argv) < 4:
+        print("usage: python", sys.argv[0],"<setting_file of the base problem> <range actual esscorts>  <range seed>")
         exit(1)
-
 
     if sys.argv[1][-3:].upper()== ".PY":
         sys.argv[1] = sys.argv[1][:-3]
@@ -137,6 +139,8 @@ if __name__ == '__main__':
         print('Panic: cannot solve using k=%d instances in the range %d' % (k,sys.argv[2]))
         exit(1)
 
+    rep_range = str2range(sys.argv[3])
+
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
     S = pickle.load( open( "BM_"+sys.argv[1]+".p", "rb" ) )
     f = open("res_dph_bm.csv", "a")
@@ -146,17 +150,16 @@ if __name__ == '__main__':
 
 
     for K in k_range:
-    #for K in [16]:
-        for i in range(reps):
-        #for i in [16]:
+        for i in rep_range:
             I, E = GeneretaeRandomInstance(i, Locations, K)
+
             I = I[0]  #  Here we assume a single retrival only now.
 
             startTime = time.time()
             moves = DOHueristicBM(S, I,E, Lx, Ly, Terminals, k, False)
 
             f = open("res_dph_bm.csv", "a")
-            f.write("%s, %s, BM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %d, %1.3f\n" %(time.ctime(),name, Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  str(E).replace(",",""), len(moves), sum([ len(a) for a in moves]),time.time()-startTime))
+            f.write("%s, %s, BM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %d, %1.3f\n" %(time.ctime(),name, Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  tuple_opl(E), len(moves), sum([ len(a) for a in moves]),time.time()-startTime))
             f.close()
 
 

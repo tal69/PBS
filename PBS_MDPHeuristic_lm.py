@@ -1,8 +1,10 @@
 #-------------------------------------------------------------------------------
-# Name:        PBS_DPHeuristic_lm.py
-# Purpose:     load data, generate instance and apply the DP heurstic  for the LM case
+# Name:        PBS_MDPHeuristic_lm.py
+# Purpose:     load data, generate instance and apply the M-DP heurstic  for the LM case
 #              PBSk|sim,lm,mIO| *
 #              The objective function * determined by the DP table
+#              The idea is similar to the DP heuristic but here we apply several
+#              actions in paralel by solving a set covering problem
 #
 # Author:      Tal Raviv talraviv@au.ac.il
 #
@@ -19,6 +21,7 @@ from PBSCom import *
 import itertools
 import random
 import time
+import subprocess
 
 
 scripts_path = "phase1LM"  # folder for the output script files
@@ -32,10 +35,15 @@ reps = 20 # number of replications
 # E  locations of the escorts (list of tuples)
 # Lx, Ly - dimension of the PBS unit
 # Terminals  locations of the IOs (list of tuples)
-def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
+def MDPHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
+
+# TODO
+# 1) Use several DP tables for various k'
+# 2) Eliminate sets with non-positive values (but handle the indices of the sets correctly)
     t = 0
 
     moves = []
+    Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
     while True:
 
@@ -58,57 +66,75 @@ def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
                 print("")
             print("")
 
-        min_val = 9999999
-
-
+            t+= 1
 
         ez = ShortestPath(I,E,Terminals)
         if ez:
+            if chat:
+                print("Finish by free shortest path")
             return moves+[ [a] for a in ez]
 
+        # Constructs sets
+        Sets = {}
+        SetsLookup = {}
+        counter = 0
+        min_val = 9999999
         for Et in itertools.combinations(E, k):
-            EE = sorted(list(Et))
+            EE = sorted(Et)
+
             p = listTuple2Int([I]+EE, Lx, Ly)
-            if S[p][0]< min_val:
-                min_val = S[p][0]
-                best_EE = EE
-                #if min_val+1 == min([ L1(I, Ter) for Ter in Terminals]):  # DONT SURE IT HELPS
-                #    break
+            p_val, next_p = S[p]
+            min_val =  min(min_val,p_val)
+            next_EE = int2ListTuple(next_p,  Lx, Ly)[1:]
+            # BUG HERE - eliminate movement of an escort into an escort
+            Elements = frozenset(EE) ^ frozenset(next_EE)
+            if not Elements in Sets or p_val < Sets[Elements][1]:
+                Sets[Elements] = ([(next_EE[i], EE[i]) for i in range(k) if EE[i] != next_EE[i] and not next_EE[i] in E],p_val)
+                SetsLookup[counter] = Elements
+                counter += 1
 
+        # Build input for SetPacking model
+        f = open("SetPackingTmp.dat","w")
+        f.write("num_sets = %d;\n"% len(Sets))
+        f.write("L = %s;\n"% tuple_opl(Locations))
+        f.write("v = [")
+        for s,v in Sets.items():
+            val = len(s)-v[1]+min_val
+            #if (val>0):
+            f.write("%d "%val)
+        f.write("];\n")
+        f.write("E = [")
+        for s,v in Sets.items():
+            val = len(s)-v[1]+min_val
+            #if (val>0):
+            f.write("%s "%tuple_opl(s))
+        f.write("];\n")
 
+        f.close()
 
-        best_EE.sort()
-        p = S[listTuple2Int([I]+best_EE, Lx,Ly)][1]
-        t += 1
+        try:
+            subprocess.run(["oplrun", "SetPacking.mod", "SetPackingTmp.dat"], check=False)
+        except:
+            print("Panic: Could not solve the model")
+            exit(1)
 
-        if p == "Sink":
-            break
-
-        L = int2ListTuple(p,  Lx, Ly)
-        I = L[0]
-        new_EE = L[1:]
+        SetPackingSol =eval(open("SetPacking.txt").read())
 
         curr_move = []
-        for i in range(len(best_EE)):
-            if best_EE[i] != new_EE[i]:
-                curr_move.append((new_EE[i], best_EE[i]))   # Recall that the load movement is opposite to the escort movement
+        for i in SetPackingSol:
+            curr_move += list(Sets[SetsLookup[i]][0])
+
         moves.append(curr_move)
 
-
-
-        # Update E  - think how to make in more pythonic
+        # Update E  - think how to make it more pythonic
         Eset = set(E)
-        for i in range(len(best_EE)):
-            if not new_EE[i] in E:
-                Eset.remove(best_EE[i])
-            Eset.add(new_EE[i])
+        for m in curr_move:
+            Eset.add(m[0])
+            Eset.remove(m[1])
+            if I == m[0]:
+                I= m[1]
 
-        #E = list((set(E) - set(best_EE)) | (set(new_EE)))  # fine new E
-        E = list(Eset)
-
-
-
-        E.sort()
+        E = sorted(list(Eset))
 
     return moves
 
@@ -141,7 +167,7 @@ if __name__ == '__main__':
     Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
 
     S = pickle.load( open( "LM_"+sys.argv[1]+".p", "rb" ) )
-    f = open("res_dph_lm.csv", "a")
+    f = open("res_mdph_lm.csv", "a")
     f.write("Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time\n")
     f.close()
 
@@ -152,14 +178,14 @@ if __name__ == '__main__':
             I = I[0]  #  Here we assume a single retrival only now.
 
             startTime = time.time()
-            moves = DOHueristicLM(S, I,E, Lx, Ly, Terminals, k, False)
+            moves = MDPHueristicLM(S, I,E, Lx, Ly, Terminals, k, True)
 
 
-            f = open("res_dph_lm.csv", "a")
+            f = open("res_mdph_lm.csv", "a")
             f.write("%s, %s, LM, %dx%d, %d, %s,%d,  %s, %s, %s, %d, %d, %1.3f\n" %(time.ctime(),name,Lx,Ly,  i, str(Terminals).replace(",",""), K, k,  str(I).replace(",",""),  tuple_opl( E), len(moves), sum([ len(a) for a in moves]) ,time.time()-startTime))
             f.close()
 
             # Uncomment to create animation scripts
-            f = open(scripts_path+"/DPH_LM_%d_%d_%d_%d_%d.p" % (Lx, Ly,len(E), k,i),"wb")
+            f = open(scripts_path+"/MDPH_LM_%d_%d_%d_%d_%d.p" % (Lx, Ly,len(E), k,i),"wb")
             pickle.dump( (Lx, Ly, Terminals, E,[I],moves),f)
             f.close()
