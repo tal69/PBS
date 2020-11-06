@@ -19,6 +19,7 @@ from PBSCom import *
 import itertools
 import random
 import time
+import copy
 
 
 scripts_path = "phase1LM"  # folder for the output script files
@@ -36,20 +37,21 @@ def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
     t = 0
 
     moves = []
+    E_now = copy.copy(E)  # cannot use to argument, because we don't want to change it
 
     while True:
 
 
         if chat:
             Ix, Iy = I
-            print("Period ",t," - ",(Ix,Iy),E)
+            print("Period ",t," - ",(Ix,Iy),E_now)
 
             for y in range(Ly-1,-1,-1):
                 for x in range(Lx):
 
                     if (Ix,Iy) == (x,y):
                         print("$",end="")
-                    elif  (x,y) in E:
+                    elif  (x,y) in E_now:
                         print(".",end="")
                     elif (x,y) in Terminals:
                         print("T",end="")
@@ -62,19 +64,17 @@ def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
 
 
 
-        ez = ShortestPath(I,E,Terminals)
+        ez = ShortestPath(I,E_now,Terminals)
         if ez:
             return moves+[ [a] for a in ez]
 
-        for Et in itertools.combinations(E, k):
+        for Et in itertools.combinations(E_now, k):
             EE = sorted(list(Et))
             p = listTuple2Int([I]+EE, Lx, Ly)
+
             if S[p][0]< min_val:
                 min_val = S[p][0]
                 best_EE = EE
-                #if min_val+1 == min([ L1(I, Ter) for Ter in Terminals]):  # DONT SURE IT HELPS
-                #    break
-
 
 
         best_EE.sort()
@@ -97,18 +97,13 @@ def DOHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
 
 
         # Update E  - think how to make in more pythonic
-        Eset = set(E)
+        Eset = set(E_now)
         for i in range(len(best_EE)):
-            if not new_EE[i] in E:
+            if not new_EE[i] in E_now:
                 Eset.remove(best_EE[i])
             Eset.add(new_EE[i])
 
-        #E = list((set(E) - set(best_EE)) | (set(new_EE)))  # fine new E
-        E = list(Eset)
-
-
-
-        E.sort()
+        E_now = sorted(Eset)
 
     return moves
 

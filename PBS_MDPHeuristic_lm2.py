@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        PBS_MDPHeuristic_lm.py
+# Name:        PBS_MDPHeuristic_lm2.py  - greedy solution of the set packing problem
 # Purpose:     load data, generate instance and apply the M-DP heurstic  for the LM case
 #              PBSk|sim,lm,mIO| *
 #              The objective function * determined by the DP table
@@ -36,27 +36,23 @@ reps = 20 # number of replications
 # E  locations of the escorts (list of tuples)
 # Lx, Ly - dimension of the PBS unit
 # Terminals  locations of the IOs (list of tuples)
-def MDPHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
-
+def MDPHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True):
 # TODO
 # 1) Use several DP tables for various k'
 # 2) Eliminate sets with non-positive values (but handle the indices of the sets correctly)
 # 3) Cleanup unnecssary movements at the end
 # 4) Consider greedy solution of the set packing problem
     t = 0
-
     E_now = copy.copy(E)
-
     moves = []
-    Locations =  sorted(set(itertools.product(range(Lx), range(Ly))))
+    notCovered = set(itertools.product(range(Lx), range(Ly)))
+    Locations =  sorted(notCovered)
     while True:
         if chat:
             Ix, Iy = I
             print("Period ",t," - ",(Ix,Iy),E_now)
-
             for y in range(Ly-1,-1,-1):
                 for x in range(Lx):
-
                     if (Ix,Iy) == (x,y):
                         print("$",end="")
                     elif  (x,y) in E_now:
@@ -83,47 +79,27 @@ def MDPHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
         for Et in itertools.combinations(E_now, k):
             EE = sorted(Et)
             p = listTuple2Int([I]+EE, Lx, Ly)
-            #print(p,EE,I)
             p_val, next_p = S[p]
-            min_val =  min(min_val,p_val)
+            min_val = min(min_val,p_val)
             next_EE = int2ListTuple(next_p,  Lx, Ly)[1:]
-
             Elements = frozenset(EE) ^ frozenset(next_EE)
             if not Elements in Sets or p_val < Sets[Elements][1]:
                 Sets[Elements] = ([(next_EE[i], EE[i]) for i in range(k) if EE[i] != next_EE[i] and not next_EE[i] in E_now],p_val)
-                SetsLookup[counter] = Elements
-                counter += 1
 
-        # Build input for SetPacking model
-        f = open("SetPackingTmp.dat","w")
-        f.write("num_sets = %d;\n"% len(Sets))
-        f.write("L = %s;\n"% tuple_opl(Locations))
-        f.write("v = [")
-        for s,v in Sets.items():
-            val = len(s)-v[1]+min_val
-            #if (val>0):
-            f.write("%d "%val)
-        f.write("];\n")
-        f.write("E = [")
-        for s,v in Sets.items():
-            val = len(s)-v[1]+min_val
-            #if (val>0):
-            f.write("%s "%tuple_opl(s))
-        f.write("];\n")
+        ListSets = sorted([(i[1], k,i[0]) for k,i in Sets.items()])
+        SetPackingSol =[]
 
-        f.close()
+        for a in ListSets:
+            if a[1] <= notCovered:
+                notCovered -= a[1]
+                SetPackingSol.append(a[2])
 
-        try:
-            subprocess.run(["oplrun", "SetPacking.mod", "SetPackingTmp.dat"], check=False)
-        except:
-            print("Panic: Could not solve the model")
-            exit(1)
-
-        SetPackingSol =eval(open("SetPacking.txt").read())
+        #SetPackingSol =eval(open("SetPacking.txt").read())
 
         curr_move = []
         for i in SetPackingSol:
-            curr_move += list(Sets[SetsLookup[i]][0])
+            curr_move.append(i)
+
 
         moves.append(curr_move)
 
@@ -132,6 +108,7 @@ def MDPHueristicLM(S, I, E, Lx , Ly, Terminals,k, chat=True ):
         for m in curr_move:
             Eset.add(m[0])
             Eset.remove(m[1])
+            # Continue here
             if I == m[0]:
                 I= m[1]
 

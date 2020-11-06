@@ -1,0 +1,2 @@
+BM_set6x6_k1_corner.p
+BM_set6x6_k2_corner.p

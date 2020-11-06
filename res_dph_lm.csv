@@ -221,3 +221,12 @@ Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #
 Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
 Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
 Mon Sep 21 01:25:56 2020, set6x6_k2_corner, LM, 6x6, 2, [(0 0)],5,  2, (0 3), {<0 5> <1 4> <3 5> <5 2> <5 4> }, 10, 17, 0.000
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Date, name, Model, Lx x Ly, seed, IOs, #escorts, k', Load, Escorts, ret. time, #moves, cpu time
+Mon Sep 21 12:04:05 2020, set6x6_k2_corner, LM, 6x6, 3, [(0 0)],3,  2, (2 3), {<1 2> <3 5> <5 4> }, 11, 20, 0.003
+Mon Sep 21 12:04:05 2020, set6x6_k2_corner, LM, 6x6, 4, [(0 0)],3,  2, (2 3), {<1 0> <3 1> <4 1> }, 11, 16, 0.002
